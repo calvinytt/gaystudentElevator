@@ -13,9 +13,9 @@ public class SocketManager {
 	DataInputStream in;
 	DataOutputStream out;
 
-	int port = 55555;
-	String ipAdr = "127.0.0.1";
+	int port;
 	static String clientName; // each thread has its own clientName
+	String reply = "";
 
 	public SocketManager() throws IOException {
 
@@ -23,6 +23,7 @@ public class SocketManager {
 			int port = 54321;
 			ServerSocket sSocket = new ServerSocket(port);
 			System.out.println("Listening at port " + port);
+
 			while (true) {
 				Socket cSocket = sSocket.accept();
 				// create new thread when new user is connected
@@ -55,28 +56,23 @@ public class SocketManager {
 
 		try {
 			DataInputStream in = new DataInputStream(cSocket.getInputStream());
-
+			DataOutputStream out = new DataOutputStream(cSocket.getOutputStream());
 			while (!end) {
 				int bytesRead = in.read(messageByte);
-				System.out.println(bytesRead);
 				dataString = new String(messageByte, 0, bytesRead);
 				if (dataString.length() == 100) {
 					end = true;
 				}
 				System.out.println("MESSAGE: " + dataString);
+				reply = dataString.toString();
+//				out.writeInt(reply.length());
+				System.out.println(reply.trim());
+				out.writeUTF("Svc_Req Passenger-0002 3 4".toString());
+				out.flush();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-//		DataInputStream in = new DataInputStream(cSocket.getInputStream());
-//		// receive client
-//		byte[] buffer = new byte[2048];
-//		System.out.println("Length: " + in.readInt());
-//		int sizeName = in.readInt();
-//		in.read(buffer, 0, sizeName);
-//		clientName = new String(buffer, 0, sizeName);
-//		System.out.println(clientName);
 	};
 
 	public static void main(String args[]) throws IOException {

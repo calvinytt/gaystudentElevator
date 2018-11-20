@@ -9,7 +9,6 @@ public class Passenger {
         pID = this.pID;
         srcFNo = this.srcFNo;
         dstFNo = this.dstFNo;
-
     }
 
     public  String getPID(){
