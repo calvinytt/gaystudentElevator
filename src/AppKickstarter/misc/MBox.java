@@ -33,14 +33,14 @@ public class MBox {
     // receive
     public final synchronized Msg receive() {
 	while (mqueue.isEmpty()) {
-	    try {
-		wait();
-	    } catch (InterruptedException e) {}
-	}
-	Msg msg = mqueue.remove(0);
+        try {
+            wait();
+        } catch (InterruptedException e) {}
+    }
+    Msg msg = mqueue.remove(0);
 	log.finest(id + ": receiving \"" + msg + "\"");
 	return msg;
-    } // receive
+} // receive
 
 
     //------------------------------------------------------------

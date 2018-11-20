@@ -19,6 +19,7 @@ import AppKickstarter.myThreads.ThreadB;
 //======================================================================
 // AppKickstarter
 public class AppKickstarter {
+	public static AppKickstarter _instance;
     private String cfgFName = null;
     private Properties cfgProps = null;
     private Hashtable<String, AppThread> appThreads = null;
@@ -52,7 +53,7 @@ public class AppKickstarter {
 
     //------------------------------------------------------------
     // AppKickstarter
-    private AppKickstarter(String id, String cfgFName) {
+    public AppKickstarter(String id, String cfgFName) {
 	this(id, cfgFName, false);
     } // AppKickstarter
 
@@ -60,6 +61,7 @@ public class AppKickstarter {
     //------------------------------------------------------------
     // AppKickstarter
     private AppKickstarter(String id, String cfgFName, boolean append) {
+    	_instance = this;
 	this.id = id;
 	this.cfgFName = cfgFName;
 	logConHd = null;
@@ -101,7 +103,7 @@ public class AppKickstarter {
 
     //------------------------------------------------------------
     // startApp
-    private void startApp() {
+    public void startApp() {
 	// start our application
 	log.info("");
 	log.info("");
@@ -110,15 +112,9 @@ public class AppKickstarter {
 
 	// create threads
 	timer = new Timer("timer", this);
-	threadA1 = new ThreadA("ThreadA1", this);
-	threadA2 = new ThreadA("ThreadA2", this);
-	threadB  = new ThreadB("ThreadB",  this);
 
 	// start threads
 	new Thread(timer).start();
-	new Thread(threadA1).start();
-	new Thread(threadA2).start();
-	new Thread(threadB).start();
     } // startApp
 
 
