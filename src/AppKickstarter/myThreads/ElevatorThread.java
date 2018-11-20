@@ -5,63 +5,59 @@ import AppKickstarter.misc.AppThread;
 import AppKickstarter.misc.MBox;
 import AppKickstarter.misc.Msg;
 import AppKickstarter.timer.Timer;
+import com.company.Elevator;
 
-
-//======================================================================
-// ThreadA
 public class ElevatorThread extends AppThread {
-    private final int sleepTime = 5;
+
+    private Elevator elevator;
+    private static final int travelTime = 100;
 
     //------------------------------------------------------------
     // ThreadA
-    public ElevatorThread(String id, AppKickstarter appKickstarter) {
-	super(id, appKickstarter);
-    } // ThreadA
+    public ElevatorThread(String id, AppKickstarter appKickstarter, Elevator elevator) {
+        super(id, appKickstarter);
+        this.elevator = elevator;
+    } // ElevatorThread
 
+    public void startTravel() {
+        log.info(id + " " + elevator.eNo);
+        Timer.setSimulationTimer(id, mbox, travelTime);
+    }
 
     //------------------------------------------------------------
     // run
     public void run() {
-	log.info(id + ": starting...");
-	Timer.setSimulationTimer(id, mbox,sleepTime);
-	int mCnt = 0;
 
-	for (boolean quit = false; !quit;) {
-		Msg msg = mbox.receive();
+        for (boolean quit = false; !quit;) {
+            Msg msg = mbox.receive();
 
-	    log.info(id + ": message received: [" + msg + "].");
+            log.info(id + ": message received: [" + msg + "].");
 
-	    switch (msg.getType()) {
-		case TimesUp:
-		    log.info(id + ": receiving timesup at " + appKickstarter.getSimulationTimeStr());
-		    log.info(id + ": say hello to Thread B...");
+            switch (msg.getType()) {
+                case TimesUp:
 
-		    // time to say hello to Thread B
-		    AppThread thdB = appKickstarter.getThread("ThreadB");
-		    MBox thdBMBox = thdB.getMBox();
-		    thdBMBox.send(new Msg(id, mbox, Msg.Type.Hello, "Hello, this is Thread A!  (mCnt: " + ++mCnt + ")"));
+                    int currF = elevator.goNextFloor();
+                    log.info(elevator.eNo + ": " + currF);
 
-		    // sleep again
-		    Timer.setSimulationTimer(id, mbox, sleepTime);
-		    break;
+                    //send message
+//                    AppThread thdB = appKickstarter.getThread("ThreadB");
+//                    MBox thdBMBox = thdB.getMBox();
+//                    thdBMBox.send(new Msg(id, mbox, Msg.Type.Hello, "Hello, this is Thread A!  (mCnt: " + ++mCnt + ")"));
 
-		case HiHi:
-		    log.info(id + ": " + msg.getSender() + " is saying HiHi to me!!!");
-		    break;
+                    break;
 
-		case Terminate:
-		    quit = true;
-		    break;
+                case Terminate:
+                    quit = true;
+                    break;
 
-		default:
-		    log.severe(id + ": unknown message type!!");
-		    break;
-	    }
-	}
+                default:
+                    log.severe(id + ": unknown message type!!");
+                    break;
+            }
+        }
 
-	// declaring our departure
-	appKickstarter.unregThread(this);
-	log.info(id + ": terminating...");
+        // declaring our departure
+        appKickstarter.unregThread(this);
+        log.info(id + ": terminating...");
     } // run
-} // ThreadA
-
+}
