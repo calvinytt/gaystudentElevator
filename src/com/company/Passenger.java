@@ -5,7 +5,7 @@ public class Passenger {
     private int srcFNo;
     private int dstFNo;
 
-    Passenger(String pID, int srcFNo, int dstFNo){
+    public Passenger(String pID, int srcFNo, int dstFNo){
         pID = this.pID;
         srcFNo = this.srcFNo;
         dstFNo = this.dstFNo;

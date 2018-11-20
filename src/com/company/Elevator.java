@@ -9,7 +9,17 @@ public class Elevator {
     private ElevatorState state;
     private List<Passenger> passengers;
 
-    public Ele
+    public Elevator(int eNo) {
+        this.eNo = eNo;
+    }
+
+    public void addPassenger(String pID, int srcFNo, int dstFNo) {
+        passengers.add(new Passenger(pID, srcFNo, dstFNo));
+    }
+
+    public void changeState(ElevatorState s) {state = s;}
+
+
 }
 
 
