@@ -50,7 +50,7 @@ public class SocketManager {
 	}
 
 	public void serve(Socket cSocket) throws IOException {
-		byte[] messageByte = new byte[1000];
+		byte[] messageByte = new byte[1024];
 		boolean end = false;
 		String dataString = "";
 
@@ -63,11 +63,15 @@ public class SocketManager {
 				if (dataString.length() == 100) {
 					end = true;
 				}
+				dataString = dataString.replaceAll("\n", "");
 				System.out.println("MESSAGE: " + dataString);
-				reply = dataString.toString();
-//				out.writeInt(reply.length());
-				System.out.println(reply.trim());
-				out.writeUTF("Svc_Req Passenger-0002 3 4".toString());
+				String[] str = dataString.split(" ");
+//				int count = dataString.split(" ").length;
+				int a = 2;
+				char liftNo = 'A';
+				reply = "Svc_Reply " + str[1] + " " + str[2] + " " + str[3] + " " + a;
+				System.out.println(reply);
+				out.writeBytes(reply + "\n");
 				out.flush();
 			}
 		} catch (Exception e) {
