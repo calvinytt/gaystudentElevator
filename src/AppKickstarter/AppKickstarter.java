@@ -3,6 +3,8 @@ package AppKickstarter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.logging.ConsoleHandler;
@@ -12,8 +14,6 @@ import java.util.Hashtable;
 
 import AppKickstarter.timer.Timer;
 import AppKickstarter.misc.*;
-import AppKickstarter.myThreads.ThreadA;
-import AppKickstarter.myThreads.ThreadB;
 
 
 //======================================================================
@@ -28,8 +28,7 @@ public class AppKickstarter {
     private ConsoleHandler logConHd = null;
     private FileHandler logFileHd = null;
     private Timer timer = null;
-    private ThreadA threadA1, threadA2;
-    private ThreadB threadB;
+    private List<Thread> threads = new ArrayList();
 
 
     //------------------------------------------------------------
@@ -125,12 +124,22 @@ public class AppKickstarter {
 	log.info("");
 	log.info("============================================================");
 	log.info(id + ": Application Stopping...");
-	threadA1.getMBox().send(new Msg(id, null, Msg.Type.Terminate, "Terminate now!"));
-	threadA2.getMBox().send(new Msg(id, null, Msg.Type.Terminate, "Terminate now!"));
-	threadB.getMBox().send(new Msg(id, null, Msg.Type.Terminate, "Terminate now!"));
+	//threadA1.getMBox().send(new Msg(id, null, Msg.Type.Terminate, "Terminate now!"));
+	//threadA2.getMBox().send(new Msg(id, null, Msg.Type.Terminate, "Terminate now!"));
+	//threadB.getMBox().send(new Msg(id, null, Msg.Type.Terminate, "Terminate now!"));
 	timer.getMBox().send(new Msg(id, null, Msg.Type.Terminate, "Terminate now!"));
+
+//	for (int i = 0; i < threads.size(); i ++) {
+//		threads[i].getMBox().send(new Msg(id, null, Msg.Type.Terminate, "Terminate now!"));
+//	}
     } // stopApp
 
+	public void startAndRegTread(AppThread appThread) {
+    	Thread newThread = new Thread(appThread);
+		threads.add(newThread);
+		newThread.start();
+		regThread(appThread);
+	}
 
     //------------------------------------------------------------
     // regThread

@@ -69,11 +69,11 @@ public class Elevator {
             DestFNo.remove(new Integer(currFNo));
         }
 
-        if (currFNo == 9) { // debug
-            this.addDestF(4);
-            this.addDestF(0);
-            this.addDestF(10);
-        }
+//        if (currFNo == 9) { // debug
+//            this.addDestF(4);
+//            this.addDestF(0);
+//            this.addDestF(10);
+//        }
 
         return currFNo;
     }
