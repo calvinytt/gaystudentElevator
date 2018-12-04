@@ -182,6 +182,11 @@ public class Timer extends AppThread {
 	return setTimer(id, mbox, simulationSleepTimeInSeconds*simulationSpeed);
     } // setSimulationTimer
 
+	// setSimulationTimer (sleep time based on simulation time)
+	public static int setSimulationTimer(String id, MBox mbox, double simulationSleepTimeInSeconds) {
+		return setTimer(id, mbox, (long)(simulationSleepTimeInSeconds*simulationSpeed));
+	} // setSimulationTimer
+
 
     //------------------------------------------------------------
     // setSimulationTimer (sleep time based on simulation time)

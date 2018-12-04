@@ -1,19 +1,21 @@
 package AppKickstarter;
 
+import AppKickstarter.misc.AppThread;
+import AppKickstarter.misc.LogFormatter;
+import AppKickstarter.misc.Msg;
+import AppKickstarter.timer.Timer;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Properties;
-import java.util.logging.Logger;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
-import java.util.Hashtable;
-
-import AppKickstarter.timer.Timer;
-import AppKickstarter.misc.*;
+import java.util.logging.Logger;
 
 
 //======================================================================
@@ -28,7 +30,7 @@ public class AppKickstarter {
     private ConsoleHandler logConHd = null;
     private FileHandler logFileHd = null;
     private Timer timer = null;
-    private List<Thread> threads = new ArrayList();
+    private List<AppThread> threads = new ArrayList();
 
 
     //------------------------------------------------------------
@@ -78,8 +80,11 @@ public class AppKickstarter {
 	    in.close();
 	    logConHd = new ConsoleHandler();
 	    logConHd.setFormatter(new LogFormatter());
-	    logFileHd = new FileHandler("etc/" + id + ".log", append);
+
+	    String locationOfLogger = getProperty("SESvr.FileLogger");
+	    logFileHd = new FileHandler(locationOfLogger, append); //"etc/" + id + ".log", append);
 	    logFileHd.setFormatter(new LogFormatter());
+
 	} catch (FileNotFoundException e) {
 	    System.out.println("Failed to open config file ("+cfgFName+").");
 	    System.exit(-1);
@@ -90,12 +95,16 @@ public class AppKickstarter {
 
 	// get and configure logger
 	log = Logger.getLogger(id);
-	log.addHandler(logConHd);
+	boolean useLog = getProperty("SESvr.ConsLogger").toUpperCase().equals("TRUE");
+	if (useLog)
+	    log.addHandler(logConHd);
 	log.addHandler(logFileHd);
 	log.setUseParentHandlers(false);
-	log.setLevel(Level.FINER);
-	logConHd.setLevel(Level.INFO);
-	logFileHd.setLevel(Level.INFO);
+	log.setLevel(Level.ALL);
+    String logLevel = getProperty("SESvr.ConsLoggerLevel");
+    logConHd.setLevel(getLogLevel(logLevel));
+    logLevel = getProperty("SESvr.FileLoggerLevel");
+    logFileHd.setLevel(getLogLevel(logLevel));
 	appThreads = new Hashtable<String, AppThread>();
     } // AppKickstarter
 
@@ -119,7 +128,7 @@ public class AppKickstarter {
 
     //------------------------------------------------------------
     // stopApp
-    private void stopApp() {
+    public void stopApp() {
 	log.info("");
 	log.info("");
 	log.info("============================================================");
@@ -129,14 +138,14 @@ public class AppKickstarter {
 	//threadB.getMBox().send(new Msg(id, null, Msg.Type.Terminate, "Terminate now!"));
 	timer.getMBox().send(new Msg(id, null, Msg.Type.Terminate, "Terminate now!"));
 
-//	for (int i = 0; i < threads.size(); i ++) {
-//		threads[i].getMBox().send(new Msg(id, null, Msg.Type.Terminate, "Terminate now!"));
-//	}
+	for (int i = 0; i < threads.size(); i ++) {
+		threads.get(i).getMBox().send(new Msg(id, null, Msg.Type.Terminate, "Terminate now!"));
+	}
     } // stopApp
 
 	public void startAndRegTread(AppThread appThread) {
     	Thread newThread = new Thread(appThread);
-		threads.add(newThread);
+		threads.add(appThread);
 		newThread.start();
 		regThread(appThread);
 	}
@@ -189,12 +198,12 @@ public class AppKickstarter {
     //------------------------------------------------------------
     // getProperty
     public String getProperty(String property) {
-	String s = cfgProps.getProperty(property);
+		String s = cfgProps.getProperty(property);
 
-	if (s == null) {
-	    log.severe(id + ": getProperty(" + property + ") failed.  Check the config file (" + cfgFName + ")!");
-	}
-	return s;
+		if (s == null) {
+			log.severe(id + ": getProperty(" + property + ") failed.  Check the config file (" + cfgFName + ")!");
+		}
+		return s;
     } // getProperty
 
 
@@ -215,4 +224,28 @@ public class AppKickstarter {
 
 	return String.format("%02d:%02d:%02d", h, m, s);
     } // getSimulationTimeStr
+
+    public Level getLogLevel(String level) {
+        switch (level.toUpperCase()) {
+            case "OFF":
+                return Level.OFF;
+            case "SEVERE":
+                return Level.SEVERE;
+            case "WARNING":
+                return Level.WARNING;
+            case "INFO":
+                return Level.INFO;
+            case "CONFIG":
+                return Level.CONFIG;
+            case "FINE":
+                return Level.FINE;
+            case "FINER":
+                return Level.FINER;
+            case "FINEST":
+                return Level.FINEST;
+            case "ALL":
+            default:
+                return Level.ALL;
+        }
+    }
 } // AppKickstarter

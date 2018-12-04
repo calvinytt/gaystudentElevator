@@ -1,7 +1,7 @@
 package AppKickstarter.misc;
 
-        import AppKickstarter.AppKickstarter;
-        import java.util.logging.Logger;
+import AppKickstarter.AppKickstarter;
+import java.util.logging.Logger;
 
 
 //======================================================================

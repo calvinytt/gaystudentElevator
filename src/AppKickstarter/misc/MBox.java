@@ -48,5 +48,7 @@ public class MBox {
     public int getMsgCnt() {
 	return mqueue.size();
     } // getMsgCnt
+
+    public void cleanUpMBox() {mqueue.clear();}
 } // MBox
 
