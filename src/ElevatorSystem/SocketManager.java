@@ -18,11 +18,12 @@ public class SocketManager {
 	private List<ClientThread> centralControlThread = new ArrayList();
 	private List<ClientThread> passengerStreamThread = new ArrayList();
 	private HashMap<String, List<ClientThread>> liftUIList = new HashMap<>();
+    private HashMap<String, List<ClientThread>> kioskList = new HashMap<>();
 	private List<ClientThread> clientThreads = new ArrayList();
 	private static int socketIndex = 0;
 
 	public enum ClientType {
-		PassengerStream, LiftUI, ElevatorUI, CentralControlUI
+		PassengerStream, LiftUI, KioskUI, CentralControlUI
 	}
 
 	public SocketManager(AppKickstarter appKickstarter) {
@@ -61,15 +62,20 @@ public class SocketManager {
 			case CentralControlUI:
 				centralControlThread.add(clientThread);
 				break;
+            case KioskUI:
+                if (!kioskList.containsKey(id))
+                    kioskList.put(id, new ArrayList<>());
+                kioskList.get(id).add(clientThread);
+                break;
 		}
 	}
 
-	/**
-	 *
-	 * @param msg
-	 * @param clientType
-	 */
-	public void sendMsgToClient(Msg msg, ClientType clientType) {
+    public void sendMsgToClient(Msg msg, ClientType clientType) {
+        sendMsgToClient(msg,clientType,null);
+    }
+
+        public void sendMsgToClient(Msg msg, ClientType clientType, String id) {
+        String[] args;
 		switch (clientType) {
 			case PassengerStream:
 				passengerStreamThread.forEach((clientThread -> {
@@ -77,11 +83,10 @@ public class SocketManager {
 				}));
 				break;
 			case LiftUI:
-				String args[] = msg.getDetails().split(" ");
+				args = msg.getDetails().split(" ");
 				if (liftUIList.containsKey(args[1])) {
 					List<ClientThread> listGUIs = liftUIList.get(args[1]);
 					listGUIs.forEach(clientThread -> {
-						System.out.println("asd");
 						clientThread.getMBox().send(msg);
 					});
 				}
@@ -91,7 +96,15 @@ public class SocketManager {
 					clientThread.getMBox().send(msg);
 				}));
 				break;
-		}
+            case KioskUI:
+                if (kioskList.containsKey(id)) {
+                    List<ClientThread> listGUIs = kioskList.get(id);
+                    listGUIs.forEach(clientThread -> {
+                        clientThread.getMBox().send(msg);
+                    });
+                }
+                break;
+        }
 	}
 
 	public void removeFromClientList(ClientThread clientThread, ClientType clientType, String id) {
@@ -106,7 +119,11 @@ public class SocketManager {
 			case CentralControlUI:
 				centralControlThread.remove(clientThread);
 				break;
-		}
+            case KioskUI:
+                if (!kioskList.containsKey(id))
+                    kioskList.remove(clientThread);
+                break;
+        }
 	}
 
 	public static void main(String args[]) throws IOException {

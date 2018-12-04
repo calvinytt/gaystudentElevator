@@ -45,6 +45,7 @@ public class Elevator {
                 if (stopNextFloor())
                     changeState(ElevatorState.DecDown);
                 else {
+                    sendMessage(false, true);
                     currFNo += direction;
                     changeState(state);
                 }
@@ -55,6 +56,7 @@ public class Elevator {
                 if (stopNextFloor())
                     changeState(ElevatorState.DecUp);
                 else {
+                    sendMessage(false, true);
                     currFNo += direction;
                     changeState(state);
                 }
@@ -114,9 +116,9 @@ public class Elevator {
 
     public void decideNextMove() {
         if (direction == 0) {
-            if (planedToOff)
+            if (planedToOff) {
                 changeState(ElevatorState.Off);
-            else
+            } else
                 changeState(ElevatorState.Idle);
         }else {
             canGetIn = false;
@@ -171,12 +173,13 @@ public class Elevator {
             if (state == ElevatorState.Off || forceChange) {
                 planedToOff = false;
                 changeState(ElevatorState.Idle);
+                appKickstarter.getThread("CentralControl").getMBox().send(new Msg(thread.getID(), thread.getMBox(), Msg.Type.SocketMsg, "Elev_start " + eNo));
             }
         } else {
-            if (state == ElevatorState.Idle) {
-                planedToOff = true;
-            } else if (forceChange) {
+            if (state == ElevatorState.Idle || forceChange) {
                 changeState(ElevatorState.Off);
+            } else {
+                planedToOff = true;
             }
         }
     }
@@ -217,25 +220,6 @@ public class Elevator {
         if (index > sizeOfDestFNo)
             index = sizeOfDestFNo;
         DestFNo.add(index, dstFNo);
-    }
-
-    public void addDestF(int dstFNo) {
-        int sizeOfDestFNo = DestFNo.size();
-        if (sizeOfDestFNo == 0)
-            direction = (int)Math.signum(dstFNo - currFNo);
-
-        int index = sizeOfDestFNo;
-        for (int i = 0; i < sizeOfDestFNo; i ++) {
-            int fNo = DestFNo.get(i);
-            if (fNo == dstFNo) {
-                return;
-            } else if (fNo > dstFNo) {
-                index = i;
-                break;
-            }
-        }
-        DestFNo.add(index, dstFNo);
-        //printDestF();
     }
 
     public boolean passengerUpdate() {
@@ -289,6 +273,8 @@ public class Elevator {
         if (changingState)
             appKickstarter.getLogger().finer(thread.getID() +": Im changing from " + state.toString() + " to " + s.toString());
 
+        appKickstarter.getThread("CentralControl").getMBox().send(new Msg(thread.getID(), thread.getMBox(), Msg.Type.SocketMsg, "Elev_state " + eNo + " " + s.toString()));
+
         changingState = true;
         state = s;
         double time;
@@ -325,6 +311,7 @@ public class Elevator {
                 passengers.clear();
                 time = -1;
                 changingState = false;
+                appKickstarter.getThread("CentralControl").getMBox().send(new Msg(thread.getID(), thread.getMBox(), Msg.Type.SocketMsg, "Elev_stop " + eNo));
                 break;
             default:
                 time =  -1;
@@ -396,6 +383,8 @@ public class Elevator {
     public void remove() {
         thread.getMBox().send(new Msg(thread.getID(), thread.getMBox(), Msg.Type.Terminate, "quit"));
     }
+
+    public boolean isPlanedToOff() {return planedToOff;}
 }
 
 

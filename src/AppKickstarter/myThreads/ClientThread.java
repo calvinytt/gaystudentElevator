@@ -2,7 +2,8 @@ package AppKickstarter.myThreads;
 
 import AppKickstarter.AppKickstarter;
 import AppKickstarter.misc.AppThread;
-import AppKickstarter.myThreads.ClientProcess.ContralControlGUIProcess;
+import AppKickstarter.myThreads.ClientProcess.CentralControlGUIProcess;
+import AppKickstarter.myThreads.ClientProcess.KioskGUIProcess;
 import AppKickstarter.myThreads.ClientProcess.LiftGUIProcess;
 import AppKickstarter.myThreads.ClientProcess.SocketPassengerProcess;
 import ElevatorSystem.SocketManager;
@@ -87,8 +88,10 @@ public class ClientThread extends AppThread {
 								socketInOutPut = new LiftGUIProcess();
 							} else if (dataString.contains("ControlGUIclient")) {
 								out.println("Run ControlGUI");
-								socketInOutPut = new ContralControlGUIProcess();
-							}
+								socketInOutPut = new CentralControlGUIProcess();
+							} else if (dataString.contains("KioskGUIclient: Ready for KioskGUI setup")) {
+                                socketInOutPut = new KioskGUIProcess();
+                            }
 							socketInOutPut.initialProcess(this, null);
 						}
 

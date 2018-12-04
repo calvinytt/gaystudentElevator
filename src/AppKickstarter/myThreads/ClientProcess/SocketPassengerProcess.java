@@ -13,7 +13,7 @@ public class SocketPassengerProcess implements ClientThread.SocketInOutPut {
         clientThread.type = SocketManager.ClientType.PassengerStream;
         SocketManager._instance.addToClientList(clientThread, clientThread.type);
 
-        ContralControlGUIProcess.startOutputThread(clientThread);
+        CentralControlGUIProcess.startOutputThread(clientThread);
 
         return null;
     }

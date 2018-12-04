@@ -7,7 +7,7 @@ import AppKickstarter.misc.Msg;
 import AppKickstarter.myThreads.ClientThread;
 import ElevatorSystem.SocketManager;
 
-public class ContralControlGUIProcess implements ClientThread.SocketInOutPut {
+public class CentralControlGUIProcess implements ClientThread.SocketInOutPut {
     @Override
     public String initialProcess(ClientThread clientThread, String dataString) {
         SocketManager._instance.addToClientList(clientThread, SocketManager.ClientType.CentralControlUI);
@@ -26,6 +26,10 @@ public class ContralControlGUIProcess implements ClientThread.SocketInOutPut {
             AppThread center = AppKickstarter._instance.getThread("CentralControl");
             MBox centralMBox = center.getMBox();
             centralMBox.send(new Msg(clientThread.getID(), clientThread.getMBox(), Msg.Type.SocketMsg, "Elev_Power " + dataString.split(" ")[1] + " FALSE"));
+        } else if (dataString.contains("Start")) {
+            AppThread center = AppKickstarter._instance.getThread("CentralControl");
+            MBox centralMBox = center.getMBox();
+            centralMBox.send(new Msg(clientThread.getID(), clientThread.getMBox(), Msg.Type.SocketMsg, "Elev_Power " + dataString.split(" ")[1] + " TRUE"));
         }
         return dataString;
     }

@@ -1,12 +1,15 @@
 package ElevatorSystem;
 
 import AppKickstarter.AppKickstarter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Elevator Manager which can create, update and remove elevator.
+ * It will handle all of queue algorithm for assigning elevator to passenger.
+ * Also read config property and store the time of all state action.
+ */
 public class ElevatorManager {
     public static double UpOneFloor =  0.6;
     public static double DownOneFloor =  0.5;
@@ -18,14 +21,29 @@ public class ElevatorManager {
     public static double DoorClose= 1.5;
     public static double DoorWait=5;
 
+    /**
+     * Unique Object of self
+     */
     public static ElevatorManager _instance;
 
+    /**
+     * List of elevator object
+     */
     private List<Elevator> elevatorList = new ArrayList();
-    private List<int[]> resultList = Collections.synchronizedList(new ArrayList());
-    private ExecutorService threadPool;
+    /**
+     * Used to assign id to elevator - automatically add one when assigning id to an elevator
+     */
     private int idIndex = 0;
+    /**
+     * AppKickstarter reference
+     */
     private AppKickstarter appKickstarter;
 
+    /**
+     * Create elevator manager and number of elevators
+     * @param appKickstarter pass the appKickstarter object to this
+     * @param eleNum the number of elevator
+     */
     public ElevatorManager(AppKickstarter appKickstarter, int eleNum) {
         UpOneFloor = Double.parseDouble(AppKickstarter._instance.getProperty("Elev.Time.UpOneFloor"));
         DownOneFloor = Double.parseDouble(AppKickstarter._instance.getProperty("Elev.Time.DownOneFloor"));
@@ -51,10 +69,10 @@ public class ElevatorManager {
             elevatorList.add(idIndex, new Elevator((char)(idIndex+65)));
             idIndex ++;
         }
-        threadPool = Executors.newFixedThreadPool(num);
     }
 
     public void powerElevator(int num, boolean power) {
+        System.out.println(num  + " " + power);
         if (num < elevatorList.size() && num >= 0)
             elevatorList.get(num).turnOnElevator(power);
     }
@@ -71,10 +89,13 @@ public class ElevatorManager {
             elevatorList.get(i).remove();
         }
         elevatorList.clear();
-        threadPool.shutdown();
     }
 
     public void addPassenger(String message, String pID, int srcFNo, int dstFNo) {
+        addPassenger(message,pID,dstFNo ,srcFNo,SocketManager.ClientType.PassengerStream);
+    }
+
+    public void addPassenger(String message, String pID, int srcFNo, int dstFNo , SocketManager.ClientType clientType) {
         int targetDirection = (int)Math.signum(dstFNo - srcFNo);
 
         double minTimeCost = Integer.MAX_VALUE;
@@ -82,10 +103,10 @@ public class ElevatorManager {
         int numOfElevator = elevatorList.size();
         int index1 = -1, index2 = -1;
 
-        resultList.clear();
-
         for (int i = 0; i < numOfElevator; i ++) {
             Elevator eleObj = elevatorList.get(i);
+            if (eleObj.isPlanedToOff())
+                continue;
 //            Integer lockId = eleObj.tryToAccessData();//try to lock and access the data of elevator
 //            if (lockId < 0)
 //                appKickstarter.getLogger().warning("Elevator " + eleObj.eNo + ": Cannot lock and access the data");
@@ -101,7 +122,6 @@ public class ElevatorManager {
             int[] results = elevatorTimeCost(cloudEleObj, srcFNo, dstFNo, targetDirection); //get the elevator score for passenger
             if (results == null)
                 System.out.println(cloudEleObj.eNo +" NULL");
-            //resultList.add(results);
             appKickstarter.getLogger().fine("\tEle " + cloudEleObj.eNo + ": " + results[0]);
             if (results[0] < minTimeCost) { //choose the elevator with minimum score
                 minTimeCost = results[0];
@@ -117,7 +137,7 @@ public class ElevatorManager {
             if (lockId < 0)
                 appKickstarter.getLogger().warning("Elevator " + assignedElevator.eNo + ": Cannot lock and access the data");
 
-            CentralControl._instance.replyElevator(message + assignedElevator.eNo);
+            CentralControl._instance.replyElevator(message + assignedElevator.eNo, clientType);
             assignedElevator.addPassenger(pID, srcFNo, dstFNo, index1, index2);
 
             assignedElevator.finishedAccessData(lockId);

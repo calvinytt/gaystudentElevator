@@ -43,6 +43,7 @@ public class Msg {
         Tick,           // Timer clock ticks
         TimesUp,        // Time's up for the timer
         SocketMsg,
+        UIReq,
         Restart,
     } // Type
 } // Msg
